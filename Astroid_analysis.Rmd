@@ -15,6 +15,6 @@ library(readr)
 
 ```{r}
 astroids <- read_csv("Meteorite_Landings.csv", col_types = cols(year = col_character()))
-head(astroids)
+head(astroids,7)
 ```
 
