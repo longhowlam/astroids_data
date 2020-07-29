@@ -18,15 +18,17 @@ library(ggplot2)
 ## import data
 
 ```{r paged.print=TRUE}
-astroids <- read_csv("Meteorite_Landings.csv", col_types = cols(year = col_character()))
-astroids = astroids %>% 
+meteorites <- read_csv(
+  "Meteorite_Landings.csv", 
+  col_types = cols(year = col_character())
+) %>% 
   rename (mass = `mass (g)` ) %>% 
   mutate( 
     date =  as.POSIXct(year,format="%d/%m/%Y %H:%M:%OS"), 
     recency = 2020 - lubridate::year(date)
   )
 
-head(astroids,7)
+head(meteorites, 7)
 ```
 
 ## data exploration {.tabset .tabset-fade}
@@ -34,21 +36,21 @@ head(astroids,7)
 ### logg mass
 
 ```{r message=FALSE, warning=FALSE}
-astroids = astroids %>% 
+meteorites = meteorites %>% 
   filter( recency >= 0) %>% 
   mutate(
     log_mass = log10(mass)
   )
-ggplot(astroids,aes(x=log_mass)) + geom_histogram(col = "black")
+ggplot(meteorites, aes(x=log_mass)) + geom_histogram(col = "black")
 ```
 
 ### Recency in years
 
 ```{r message=FALSE, warning=FALSE}
-astroids = astroids %>% 
+meteorites = meteorites %>% 
   filter( recency >= 0, recency < 200)
 
-ggplot(astroids,aes(x=recency)) + geom_histogram(col = "black")
+ggplot(meteorites, aes(x=recency)) + geom_histogram(col = "black")
 ```
 
 ## leaflet map
@@ -60,7 +62,7 @@ Interactive map of astroid locations
 greens <- colorNumeric("Reds", domain = NULL)
 
 leaflet(
-  data = astroids, 
+  data = meteorites, 
   width = "1400px", height = "1100px",
   ) %>% 
   addTiles() %>% 
