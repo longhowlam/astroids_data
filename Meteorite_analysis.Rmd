@@ -6,16 +6,23 @@ output:
 ---
 
 
-# Metorite analysis
+
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 1900)
+```
+
+## Meteorite analysis
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(dplyr)
 library(readr)
 library(leaflet)
 library(ggplot2)
+library(knitr)
 ```
 
-## import data
+### Import data
 
 ```{r paged.print=TRUE}
 meteorites <- read_csv(
@@ -28,12 +35,12 @@ meteorites <- read_csv(
     recency = 2020 - lubridate::year(date)
   )
 
-head(meteorites, 7)
+kable(head(meteorites, 7))
 ```
 
-## data exploration {.tabset .tabset-fade}
+### data exploration {.tabset .tabset-fade}
 
-### logg mass
+#### logg mass
 
 ```{r message=FALSE, warning=FALSE}
 meteorites = meteorites %>% 
@@ -44,7 +51,7 @@ meteorites = meteorites %>%
 ggplot(meteorites, aes(x=log_mass)) + geom_histogram(col = "black")
 ```
 
-### Recency in years
+#### Recency in years
 
 ```{r message=FALSE, warning=FALSE}
 meteorites = meteorites %>% 
@@ -53,25 +60,43 @@ meteorites = meteorites %>%
 ggplot(meteorites, aes(x=recency)) + geom_histogram(col = "black")
 ```
 
-## leaflet map
+#### Meteorite class
+
+```{r}
+meteorites %>% 
+  group_by(recclass) %>%
+  summarise(n=n()) %>%
+  arrange(desc(n)) %>% 
+  head(10) %>% 
+  kable()
+```
+
+
+### leaflet map
 
 
 Interactive map of astroid locations
 
 ```{r}
-greens <- colorNumeric("Reds", domain = NULL)
+reds <- colorNumeric("Reds", domain = NULL)
 
 leaflet(
   data = meteorites, 
   width = "1400px", height = "1100px",
   ) %>% 
-  addTiles() %>% 
+  addTiles() %>%
+  setView(5,50, zoom = 5) %>% 
   addCircleMarkers(
     ~reclong, ~reclat,
     label = ~name, 
     radius = ~0.8*log_mass,stroke = TRUE, weight = 2,
     fillOpacity = .75,
-    color = ~greens(recency)
-  )
+    color = ~reds(recency)
+  ) %>% 
+  addLegend(
+    pal = reds,
+    values = ~recency, 
+    group = "circles", position = "bottomleft", title = "recency (in years)"
+  ) 
 ```
 
