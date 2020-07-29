@@ -1,14 +1,14 @@
 ---
-title: "Analysis of NASA Astroid data"
+title: "Analysis of NASA meteorite landings data"
 output:
   html_document: 
     toc: yes
 ---
 
 
-# Astroid analysis
+# Metorite analysis
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(dplyr)
 library(readr)
 library(leaflet)
@@ -17,7 +17,7 @@ library(ggplot2)
 
 ## import data
 
-```{r}
+```{r paged.print=TRUE}
 astroids <- read_csv("Meteorite_Landings.csv", col_types = cols(year = col_character()))
 astroids = astroids %>% 
   rename (mass = `mass (g)` ) %>% 
@@ -29,21 +29,30 @@ astroids = astroids %>%
 head(astroids,7)
 ```
 
-## Histogram of logg mass
+## data exploration {.tabset .tabset-fade}
 
-```{r}
+### logg mass
+
+```{r message=FALSE, warning=FALSE}
 astroids = astroids %>% 
   filter( recency >= 0) %>% 
   mutate(
     log_mass = log10(mass)
   )
-
 ggplot(astroids,aes(x=log_mass)) + geom_histogram(col = "black")
-ggplot(astroids,aes(x=recency)) + geom_histogram(col = "black")
+```
 
+### Recency in years
+
+```{r message=FALSE, warning=FALSE}
+astroids = astroids %>% 
+  filter( recency >= 0, recency < 200)
+
+ggplot(astroids,aes(x=recency)) + geom_histogram(col = "black")
 ```
 
 ## leaflet map
+
 
 Interactive map of astroid locations
 
