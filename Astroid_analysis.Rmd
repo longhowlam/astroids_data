@@ -1,20 +1,66 @@
 ---
 title: "Analysis of NASA Astroid data"
 output:
-  html_document:
-    df_print: paged
+  html_document: 
+    toc: yes
 ---
 
 
 # Astroid analysis
 
 ```{r}
+library(dplyr)
 library(readr)
+library(leaflet)
+library(ggplot2)
 ```
 
+## import data
 
 ```{r}
 astroids <- read_csv("Meteorite_Landings.csv", col_types = cols(year = col_character()))
+astroids = astroids %>% 
+  rename (mass = `mass (g)` ) %>% 
+  mutate( 
+    date =  as.POSIXct(year,format="%d/%m/%Y %H:%M:%OS"), 
+    recency = 2020 - lubridate::year(date)
+  )
+
 head(astroids,7)
+```
+
+## Histogram of logg mass
+
+```{r}
+astroids = astroids %>% 
+  filter( recency >= 0) %>% 
+  mutate(
+    log_mass = log10(mass)
+  )
+
+ggplot(astroids,aes(x=log_mass)) + geom_histogram(col = "black")
+ggplot(astroids,aes(x=recency)) + geom_histogram(col = "black")
+
+```
+
+## leaflet map
+
+Interactive map of astroid locations
+
+```{r}
+greens <- colorNumeric("Reds", domain = NULL)
+
+leaflet(
+  data = astroids, 
+  width = "1400px", height = "1100px",
+  ) %>% 
+  addTiles() %>% 
+  addCircleMarkers(
+    ~reclong, ~reclat,
+    label = ~name, 
+    radius = ~0.8*log_mass,stroke = TRUE, weight = 2,
+    fillOpacity = .75,
+    color = ~greens(recency)
+  )
 ```
 
