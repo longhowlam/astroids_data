@@ -3,9 +3,16 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+
 # Astroid analysis
 
 ```{r}
-plot(cars)
+library(readr)
+```
+
+
+```{r}
+astroids <- read_csv("Meteorite_Landings.csv", col_types = cols(year = col_character()))
+head(astroids)
 ```
 
