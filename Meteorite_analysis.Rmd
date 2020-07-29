@@ -57,20 +57,26 @@ ggplot(meteorites, aes(x=log_mass)) + geom_histogram(col = "black")
 meteorites = meteorites %>% 
   filter( recency >= 0, recency < 200)
 
-ggplot(meteorites, aes(x=recency)) + geom_histogram(col = "black")
+ggplot(meteorites, aes(x=recency)) + geom_histogram(col = "black", binwidth = 5)
 ```
 
 #### Meteorite class
 
-```{r}
+```{r, fig.width=13, fig.height=5}
 meteorites %>% 
   group_by(recclass) %>%
   summarise(n=n()) %>%
   arrange(desc(n)) %>% 
-  head(10) %>% 
-  kable()
+  head(25) %>% 
+  ggplot(aes(recclass, weight = n)) +
+  geom_bar()
 ```
 
+#### time series
+
+```{r, fig.width=13, fig.height=5}
+meteorites %>% ggplot(aes(x = date, y = mass)) + geom_line()
+```
 
 ### leaflet map
 
@@ -80,6 +86,7 @@ Interactive map of astroid locations
 ```{r}
 reds <- colorNumeric("Reds", domain = NULL)
 
+labels = paste(sep = "<br>", meteorites$name, lubridate::year(meteorites$date))
 leaflet(
   data = meteorites, 
   width = "1400px", height = "1100px",
@@ -88,7 +95,7 @@ leaflet(
   setView(5,50, zoom = 5) %>% 
   addCircleMarkers(
     ~reclong, ~reclat,
-    label = ~name, 
+    label = ~labels, 
     radius = ~0.8*log_mass,stroke = TRUE, weight = 2,
     fillOpacity = .75,
     color = ~reds(recency)
