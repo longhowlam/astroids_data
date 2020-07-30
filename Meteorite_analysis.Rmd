@@ -3,9 +3,16 @@ title: "Analysis of NASA meteorite landings data"
 output:
   html_document: 
     toc: yes
+    toc_float: true
 ---
 
-
+<style type="text/css">
+.main-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
 
 
 ```{r set-options, echo=FALSE, cache=FALSE}
@@ -13,6 +20,15 @@ options(width = 1900)
 ```
 
 ## Meteorite analysis
+
+***
+
+![](meteorite.png)
+
+***
+
+Nasa has a nice set on meteorite landings. See the [source of the data here](https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh).
+
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(dplyr)
@@ -24,6 +40,8 @@ library(knitr)
 
 ### Import data
 
+The data is a plain csv file. We create a proper date column, rename mass (g) and create a mass in kilograms.
+
 ```{r paged.print=TRUE}
 meteorites <- read_csv(
   "Meteorite_Landings.csv", 
@@ -31,6 +49,7 @@ meteorites <- read_csv(
 ) %>% 
   rename (mass = `mass (g)` ) %>% 
   mutate( 
+    mass_kg = mass / 1000,
     date =  as.POSIXct(year,format="%d/%m/%Y %H:%M:%OS"), 
     recency = 2020 - lubridate::year(date)
   )
@@ -38,20 +57,39 @@ meteorites <- read_csv(
 kable(head(meteorites, 7))
 ```
 
-### data exploration {.tabset .tabset-fade}
+### Data exploration {.tabset .tabset-fade}
 
 #### logg mass
+
+The mass of the meteorite is recorded. Below you see a histogram of the mass_kg (log 10 scale). so log_mass_kg = 0 means the meteorite had a mass of 1 KG.
 
 ```{r message=FALSE, warning=FALSE}
 meteorites = meteorites %>% 
   filter( recency >= 0) %>% 
   mutate(
-    log_mass = log10(mass)
+    log_mass_kg = log10(mass_kg)
   )
-ggplot(meteorites, aes(x=log_mass)) + geom_histogram(col = "black")
+ggplot(meteorites, aes(x=log_mass_kg)) + geom_histogram(col = "black")
 ```
 
+#### Time series {.tabset}
+
+The following plots shows the mass of the meteorite versus date of landing
+
+##### mass in KG
+```{r, fig.width=13, fig.height=5}
+meteorites %>% ggplot(aes(x = date, y = mass_kg)) + geom_line()
+```
+
+##### log mass
+```{r, fig.width=13, fig.height=5}
+meteorites %>% ggplot(aes(x = date, y = log_mass_kg)) + geom_line()
+```
+
+
 #### Recency in years
+
+For most, not all, the date of the landing is recorded. The following histogram shows how recent the landing was (in years).
 
 ```{r message=FALSE, warning=FALSE}
 meteorites = meteorites %>% 
@@ -72,18 +110,13 @@ meteorites %>%
   geom_bar()
 ```
 
-#### time series
 
-```{r, fig.width=13, fig.height=5}
-meteorites %>% ggplot(aes(x = date, y = mass)) + geom_line()
-```
-
-### leaflet map
+### Leaflet map
 
 
-Interactive map of astroid locations
+Interactive map of astroid locations.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 reds <- colorNumeric("Reds", domain = NULL)
 
 labels = paste(sep = "<br>", meteorites$name, lubridate::year(meteorites$date))
@@ -96,7 +129,7 @@ leaflet(
   addCircleMarkers(
     ~reclong, ~reclat,
     label = ~labels, 
-    radius = ~0.8*log_mass,stroke = TRUE, weight = 2,
+    radius = ~log_mass_kg,stroke = TRUE, weight = 2,
     fillOpacity = .75,
     color = ~reds(recency)
   ) %>% 
