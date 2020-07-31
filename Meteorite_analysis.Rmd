@@ -36,6 +36,7 @@ library(readr)
 library(leaflet)
 library(ggplot2)
 library(knitr)
+library(plotly)
 ```
 
 ### Import data
@@ -101,13 +102,17 @@ ggplot(meteorites, aes(x=recency)) + geom_histogram(col = "black", binwidth = 5)
 #### Meteorite class
 
 ```{r, fig.width=13, fig.height=5}
-meteorites %>% 
+mclasses = meteorites %>% 
   group_by(recclass) %>%
   summarise(n=n()) %>%
   arrange(desc(n)) %>% 
-  head(25) %>% 
-  ggplot(aes(recclass, weight = n)) +
-  geom_bar()
+  head(30) 
+
+
+#  ggplot(aes(recclass, weight = n)) +
+#  geom_bar()
+
+plot_ly(mclasses, x=~recclass, y = ~n )
 ```
 
 
